@@ -1,0 +1,5 @@
+.idea/
+Kotys.iml
+src/main/java/de/arraying/kotys/Main.java
+src/test
+target/
