@@ -3,10 +3,7 @@ package de.arraying.kotys;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class JSON {
 
-    private final Map<String, Object> rawContent = new ConcurrentHashMap<>();
+    private final Map<String, Object> rawContent = new HashMap<>();
     private final JSONUtil util = new JSONUtil();
 
     /**

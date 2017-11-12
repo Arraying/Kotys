@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,7 +92,7 @@ final class JSONUtil {
      * @return A JSON object.
      */
     private JSON getFromObject(Object object) {
-        Map<String, Object> local = new ConcurrentHashMap<>();
+        Map<String, Object> local = new HashMap<>();
         for(Method method : object.getClass().getMethods()) {
             if(method.getParameterCount() != 0
                     || !Modifier.isPublic(method.getModifiers())) {
