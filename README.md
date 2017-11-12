@@ -75,6 +75,7 @@ public class Address {
 After creating the JSON object, you can then specify to marshal it to a Person object.
 
 ```java
+JSON person = new JSON(jsonString);
 Person personObject = person.marshal(Person.class);
 System.out.println(personObject.getAge()); // prints "25"
 ```
