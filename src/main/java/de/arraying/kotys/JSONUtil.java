@@ -81,6 +81,7 @@ final class JSONUtil {
         return object == null
                 || object instanceof String
                 || object instanceof Integer
+                || object instanceof Long
                 || object instanceof Double
                 || object instanceof Float
                 || object instanceof Boolean;

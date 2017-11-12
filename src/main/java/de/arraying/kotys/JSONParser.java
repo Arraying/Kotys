@@ -172,7 +172,7 @@ final class JSONParser {
             case TYPE_DOUBLE:
                 return asDouble(value);
             case TYPE_INTEGER:
-                return asInteger(value);
+                return asNonDecimal(value);
             case TYPE_STRING:
                 return value.substring(1, value.length()-1);
         }
@@ -193,15 +193,21 @@ final class JSONParser {
     }
 
     /**
-     * Gets a string as an integer.
-     * @param value The string.
-     * @return An integer.
+     * Gets the value as non decimal.
+     * @param value The value.
+     * @return A long or integer depending on the size.
      */
-    private Integer asInteger(String value) {
+    private Number asNonDecimal(String value) {
         try {
-            return Integer.valueOf(value);
+            long large = Long.valueOf(value);
+            if(large <= Integer.MAX_VALUE
+                    && large >= Integer.MIN_VALUE) {
+                return (int) large;
+            } else {
+                return large;
+            }
         } catch(NumberFormatException exception) {
-            return Integer.MAX_VALUE;
+            return Long.MAX_VALUE;
         }
     }
 

@@ -133,6 +133,21 @@ public class JSONArray {
     }
 
     /**
+     * Gets the Long at the specified index.
+     * @param index The index, 0 based indexing.
+     * @return The entry as a Long, or null if the specified index is out of range or the value is null.
+     * @throws ClassCastException If the entry is not a Long.
+     */
+    public Long large(int index)
+            throws ClassCastException {
+        if(index < 0
+                || index >= rawContent.size()) {
+            return null;
+        }
+        return (Long) rawContent.get(index);
+    }
+
+    /**
      * Gets the Double at the specified index.
      * @param index The index, 0 based indexing.
      * @return The entry as a Double, or null if the specified index is out of range or the value is null.

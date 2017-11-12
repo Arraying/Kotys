@@ -184,6 +184,21 @@ public class JSON {
     }
 
     /**
+     * Gets a Long object from all entries.
+     * @param key The key.
+     * @return The entry as a Long, or null if the specified value does not exist or the value is null.
+     * @throws IllegalArgumentException If the key is null.
+     * @throws ClassCastException If the entry is not a Long.
+     */
+    public Long large(String key)
+            throws IllegalArgumentException, ClassCastException {
+        if(key == null) {
+            throw new IllegalArgumentException("Provided key is null");
+        }
+        return (Long) rawContent.get(key);
+    }
+
+    /**
      * Gets a Double object from all entries.
      * @param key The key.
      * @return The entry as a Double, or null if the specified value does not exist or the value is null.
