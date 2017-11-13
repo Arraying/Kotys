@@ -80,21 +80,24 @@ public class JSONArray {
      * Appends a value to the array.
      * This entry can either be a raw JSON data type, or a custom object.
      * For more information on how custom object parsing works, see {@link de.arraying.kotys.JSON(Object)}
-     * @param value The value to append.
+     * @param values The values to append.
      */
-    public void append(Object value)
+    public void append(Object... values)
             throws IllegalArgumentException {
-        rawContent.add(util.getFinalValue(value));
+        for(Object object : values) {
+            rawContent.add(util.getFinalValue(object));
+        }
     }
 
     /**
      * Gets the Object at the specified index.
      * @param index The index, 0 based indexing.
      * @return The entry as an Object, or null if the specified index is out of range or the value is null.
+     * @throws IndexOutOfBoundsException If the provided index is out of range.
      * @throws ClassCastException If the entry is not an Object.
      */
     public Object object(int index)
-            throws ClassCastException {
+            throws IndexOutOfBoundsException, ClassCastException {
         if(index < 0
                 || index >= rawContent.size()) {
             return null;
@@ -110,11 +113,7 @@ public class JSONArray {
      */
     public String string(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (String) rawContent.get(index);
+        return (String) object(index);
     }
 
     /**
@@ -125,11 +124,7 @@ public class JSONArray {
      */
     public Integer integer(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (Integer) rawContent.get(index);
+        return (Integer) object(index);
     }
 
     /**
@@ -140,11 +135,7 @@ public class JSONArray {
      */
     public Long large(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (Long) rawContent.get(index);
+        return (Long) object(index);
     }
 
     /**
@@ -155,11 +146,7 @@ public class JSONArray {
      */
     public Double decimal(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (Double) rawContent.get(index);
+        return (Double) object(index);
     }
 
     /**
@@ -170,11 +157,7 @@ public class JSONArray {
      */
     public Boolean bool(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (Boolean) rawContent.get(index);
+        return (Boolean) object(index);
     }
 
     /**
@@ -185,11 +168,7 @@ public class JSONArray {
      */
     public JSON json(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (JSON) rawContent.get(index);
+        return (JSON) object(index);
     }
 
     /**
@@ -200,11 +179,7 @@ public class JSONArray {
      */
     public JSONArray array(int index)
             throws ClassCastException {
-        if(index < 0
-                || index >= rawContent.size()) {
-            return null;
-        }
-        return (JSONArray) rawContent.get(index);
+        return (JSONArray) object(index);
     }
 
     /**
@@ -221,6 +196,14 @@ public class JSONArray {
      */
     public final int length() {
         return rawContent.size();
+    }
+
+    /**
+     * Checks whether the array is empty.
+     * @return True if it is, false otherwise.
+     */
+    public final boolean isEmpty() {
+        return rawContent.isEmpty();
     }
 
     /**

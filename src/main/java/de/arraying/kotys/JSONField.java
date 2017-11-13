@@ -25,9 +25,9 @@ import java.lang.annotation.Target;
 public @interface JSONField {
 
     /**
-     * Gets the name of the JSON key for this field.
-     * @return The name of the key.
+     * Gets the JSON key for this field.
+     * @return The key.
      */
-    String jsonKey();
+    String key();
 
 }

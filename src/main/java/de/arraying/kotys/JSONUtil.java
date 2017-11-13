@@ -1,13 +1,7 @@
 package de.arraying.kotys;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Copyright 2017 Arraying
@@ -26,15 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 final class JSONUtil {
 
-    private final String[] parsableMethodPrefixes = {"is", "get"};
-
     /**
      * Gets the object as a JSON string.
      * @param object The object.
      * @return A string version of the object.
      */
     String toString(Object object) {
-        String string = object.toString();
+        String string = object == null ? "null" : object.toString();
         if(object instanceof String) {
             string = string.replace("\t", "\\t")
                     .replace("\b", "\\b")
@@ -51,9 +43,10 @@ final class JSONUtil {
     /**
      * Gets the final value from an object.
      * @param value The raw object.
+     * @param ignoredFields All ignored fields.
      * @return A final value.
      */
-    Object getFinalValue(Object value) {
+    Object getFinalValue(Object value, String... ignoredFields) {
         if(isValidJSONDataType(value)) {
             return value;
         } else if(value.getClass().isArray()) {
@@ -64,7 +57,7 @@ final class JSONUtil {
             return new JSONArray(objects.toArray());
         } else if(!(value instanceof JSON)
                 && !(value instanceof JSONArray)){
-            return getFromObject(value);
+            return new JSON(new JSONORM<>(value).getValues(ignoredFields));
         } else {
             return value;
         }
@@ -85,40 +78,6 @@ final class JSONUtil {
                 || object instanceof Double
                 || object instanceof Float
                 || object instanceof Boolean;
-    }
-
-    /**
-     * Gets a JSON object from a specified Java object.
-     * @param object The object.
-     * @return A JSON object.
-     */
-    private JSON getFromObject(Object object) {
-        Map<String, Object> local = new HashMap<>();
-        for(Method method : object.getClass().getMethods()) {
-            if(method.getParameterCount() != 0
-                    || !Modifier.isPublic(method.getModifiers())) {
-                continue;
-            }
-            String methodName = method.getName();
-            if(methodName.equals("getClass")) {
-                continue;
-            }
-            String key = null;
-            for(String prefix : parsableMethodPrefixes) {
-                if(methodName.startsWith(prefix)) {
-                    key = methodName.substring(prefix.length()).toLowerCase();
-                    break;
-                }
-            }
-            if(key == null
-                    || key.isEmpty()) {
-                continue;
-            }
-            try {
-                local.put(key, getFinalValue(method.invoke(object)));
-            } catch(IllegalAccessException | InvocationTargetException ignored) {}
-        }
-        return new JSON(local);
     }
 
 }

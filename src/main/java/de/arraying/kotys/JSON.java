@@ -1,10 +1,6 @@
 package de.arraying.kotys;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Copyright 2017 Arraying
@@ -90,28 +86,25 @@ public class JSON {
 
     /**
      * Creates a new JSON object from a container.
-     * This will look for all getter methods (public), and then use the result of these methods.
-     * If a getter returns an object, it will attempt to parse this this object too, etc.
-     * If an error occurs invoking the getter, it will be ignored silently, and the object won't be added.
+     * This container object MUST be annotated with {@link de.arraying.kotys.JSONContainer} OR every wanted field MUST be annotated with {@link de.arraying.kotys.JSONField}.
+     * All selected fields will then be attempted to be converted into JSON.
+     * If a field is not a valid JSON datatype the object will then be taken, and this method will be called recursively.
      * @param container A container.
+     * @param ignoredFields An array of ignored field names that will not get converted, regardless of annotation.
      * @throws IllegalArgumentException If the provided container is null, or not a container.
      */
-    public JSON(Object container)
+    public JSON(Object container, String... ignoredFields)
             throws IllegalArgumentException {
         if(container == null) {
             throw new IllegalArgumentException("Provided container is null");
         }
-        Object result = util.getFinalValue(container);
-        if(!(result instanceof JSON)) {
-            throw new IllegalArgumentException("Provided object is not a container");
-        }
-        rawContent.putAll(((JSON) result).rawContent);
+        rawContent.putAll(new JSONORM<>(container).getValues(ignoredFields));
     }
 
     /**
      * Adds an entry to the current JSON object.
      * This entry can either be a raw JSON data type, or a custom object.
-     * For more information on how custom object parsing works, see {@link #JSON(Object)}
+     * For more information on how custom object parsing works, see {@link #JSON(Object, String...)} )}
      * @param key The key.
      * @param entry The entry.
      * @throws IllegalArgumentException If the key is null.
@@ -162,10 +155,7 @@ public class JSON {
      */
     public String string(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (String) rawContent.get(key);
+        return (String) object(key);
     }
 
     /**
@@ -177,10 +167,7 @@ public class JSON {
      */
     public Integer integer(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (Integer) rawContent.get(key);
+        return (Integer) object(key);
     }
 
     /**
@@ -192,10 +179,7 @@ public class JSON {
      */
     public Long large(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (Long) rawContent.get(key);
+        return (Long) object(key);
     }
 
     /**
@@ -207,10 +191,7 @@ public class JSON {
      */
     public Double decimal(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (Double) rawContent.get(key);
+        return (Double) object(key);
     }
 
     /**
@@ -222,10 +203,7 @@ public class JSON {
      */
     public Boolean bool(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (Boolean) rawContent.get(key);
+        return (Boolean) object(key);
     }
 
     /**
@@ -237,10 +215,7 @@ public class JSON {
      */
     public JSON json(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (JSON) rawContent.get(key);
+        return (JSON) object(key);
     }
 
     /**
@@ -252,10 +227,7 @@ public class JSON {
      */
     public JSONArray array(String key)
             throws IllegalArgumentException, ClassCastException {
-        if(key == null) {
-            throw new IllegalArgumentException("Provided key is null");
-        }
-        return (JSONArray) rawContent.get(key);
+        return (JSONArray) object(key);
     }
 
     /**
@@ -304,80 +276,32 @@ public class JSON {
         return formatter.result();
     }
 
+
     /**
-     * Marshals the JSON object to the specified object.
-     * This requires the object to have an open and public constructor.
-     * The fields of the object will then be to the corresponding value (e.g. String name -> gets the String with the "name" key).
-     * If the object corresponding to the field is a JSON object then it will attempt to marshal the field.
+     * Marshals (maps) the JSON object to the specified object.
+     * An instance of this object will be created.
+     * This object object MUST be annotated with {@link de.arraying.kotys.JSONContainer} OR every wanted field MUST be annotated with {@link de.arraying.kotys.JSONField}.
+     * If the object is annotated with {@link de.arraying.kotys.JSONContainer} then all JSON keys will be mapped to fields with the name of the key.
+     * Fields who's names are not in the JSON object will not get set.
+     * If the field is annotated with {@link de.arraying.kotys.JSONField}, then the field will receive the value of the JSON key specified in the annotation.
+     * In the case that the JSON object does not contain the key specified in the annotation, the field will be initialized as null instead.
+     * When using arrays, then the array in T MUST be non primitive.
+     * The data type of the array depends on the class of the first element in the JSON array.
+     * If elements in the JSON array are not the same type as the array, then null will be used.
+     * If a field is not a JSON datatype, then a JSON sub object will be fetched from the current JSON object, and this object will be marshaled recursively.
      * @param clazz The class of T to use when marshalling.
-     * @param ignoredKeys A vararg of ignored JSON keys. These will not be mapped.
+     * @param ignoredKeys A vararg of ignored JSON keys. These will not be marshaled, regardless of annotation.
      * @param <T> The type (object) to marshal to.
      * @return A marshaled object.
      * @throws IllegalArgumentException If the class is null or has no empty constructor.
+     * @throws IllegalStateException If the class could not be instantiated.
      */
-    public final <T> T marshal(Class<? extends T> clazz, String... ignoredKeys)
+    public final <T> T marshal(Class<T> clazz, String... ignoredKeys)
             throws IllegalArgumentException {
         if(clazz == null) {
             throw new IllegalArgumentException("Provided class is null");
         }
-        Constructor<?> constructor = null;
-        for(Constructor<?> tConstructor : clazz.getConstructors()) {
-            if(tConstructor.getParameterCount() == 0) {
-                constructor = tConstructor;
-            }
-        }
-        if(constructor == null) {
-            throw new IllegalArgumentException("Provided class has no empty constructor");
-        }
-        T t;
-        try {
-            //noinspection unchecked
-            t = (T) constructor.newInstance();
-        } catch(InvocationTargetException | InstantiationException | IllegalAccessException exception) {
-            throw new IllegalStateException("An internal error occurred, could not instantiate " + clazz);
-        }
-        boolean classBasedAnnotation = clazz.isAnnotationPresent(JSONContainer.class);
-        keyIteration:
-        for(Map.Entry<String, Object> entry : rawContent.entrySet()) {
-            String key = entry.getKey();
-            for(String ignored : ignoredKeys) {
-                if(entry.getKey().equals(ignored)) {
-                    continue keyIteration;
-                }
-            }
-            Field field = null;
-            for(Field classField : t.getClass().getDeclaredFields()) {
-                if(classBasedAnnotation) {
-                    if(classField.getName().equals(key)) {
-                        field = classField;
-                        break;
-                    }
-                } else {
-                    if(classField.isAnnotationPresent(JSONField.class)
-                            && classField.getAnnotation(JSONField.class).jsonKey().equals(key)) {
-                        field = classField;
-                        break;
-                    }
-                }
-            }
-            if(field == null) {
-                continue;
-            }
-            field.setAccessible(true);
-            Object rawValue = entry.getValue();
-            Object value;
-            if(rawValue instanceof JSON) {
-                value = ((JSON) rawValue).marshal(field.getType());
-            } else if(rawValue instanceof JSONArray) {
-                value = ((JSONArray) rawValue).toArray();
-            } else {
-                value = rawValue;
-            }
-            try {
-                field.set(t, value);
-            } catch(Exception ignored) {}
-        }
-        return t;
+        return new JSONORM<>(clazz).mapTo(this, ignoredKeys);
     }
 
     /**
