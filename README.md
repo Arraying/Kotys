@@ -75,11 +75,12 @@ public class Address {
 After creating the JSON object, you can then specify to marshal it to a Person object.
 
 ```java
+JSON person = new JSON(jsonString);
 Person personObject = person.marshal(Person.class);
 System.out.println(personObject.getAge()); // prints "25"
 ```
 
-The annotation `@JSONContainer` specifies that all JSON keys (unless specifically ignored) will be mapped to a field with the name name. 
+The annotation `@JSONContainer` specifies that all JSON keys (unless specifically ignored) will be mapped to a field with the same name. 
 `@JSONField` specifies that only the provided field is mapped to the key specified in the annotation.
 
 # Usage
