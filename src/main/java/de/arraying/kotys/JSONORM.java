@@ -64,14 +64,15 @@ final class JSONORM<T> {
     JSONORM(Class<T> clazz)
             throws IllegalArgumentException {
         Constructor<?> constructor = null;
-        for(Constructor<?> tConstructor : clazz.getConstructors()) {
+        for(Constructor<?> tConstructor : clazz.getDeclaredConstructors()) {
             if(tConstructor.getParameterCount() == 0) {
                 constructor = tConstructor;
             }
         }
         if(constructor == null) {
-            throw new IllegalArgumentException("Provided class has no empty constructor");
+            throw new IllegalArgumentException("Provided class " + clazz + " has no empty constructor");
         }
+        constructor.setAccessible(true);
         try {
             //noinspection unchecked
             container = (T) constructor.newInstance();
@@ -112,6 +113,7 @@ final class JSONORM<T> {
      * @param json The JSON object.
      * @param ignoredJSONKeys JSON keys that will be ignored.
      * @return A mapped object.
+     * @throws UnsupportedOperationException If a field is a multidimensional array.
      */
     T mapTo(JSON json, String... ignoredJSONKeys) {
         containerLoop:
@@ -137,14 +139,22 @@ final class JSONORM<T> {
                 if(jsonArray.length() == 0) {
                     continue;
                 }
-                Object first = jsonArray.object(0);
-                Object[] array = (Object[]) Array.newInstance(first.getClass(), jsonArray.length());
+                Class<?> fieldType = field.getType().getComponentType();
+                if(fieldType.isPrimitive()) {
+                    throw new IllegalArgumentException("Array type " + fieldType + " is primitive");
+                }
+                Object[] array = (Object[]) Array.newInstance(fieldType, jsonArray.length());
                 for(int i = 0; i < array.length; i++) {
                     Object object = jsonArray.object(i);
-                    if(!object.getClass().equals(first.getClass())) {
+                    if(object instanceof JSON) {
+                        object = ((JSON) object).marshal(fieldType, ignoredJSONKeys);
+                    } else if (object instanceof JSONArray) {
+                        throw new UnsupportedOperationException("Cannot map to a multidimensional array for field " + field.getName());
+                    }
+                    if(!object.getClass().equals(fieldType)) {
                         continue;
                     }
-                    array[i] = jsonArray.object(i);
+                    array[i] = object;
                 }
                 value = array;
             } else {

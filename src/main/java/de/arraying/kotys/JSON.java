@@ -17,7 +17,7 @@ import java.util.*;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class JSON {
 
     private final Map<String, Object> rawContent = new HashMap<>();
@@ -107,14 +107,31 @@ public class JSON {
      * For more information on how custom object parsing works, see {@link #JSON(Object, String...)} )}
      * @param key The key.
      * @param entry The entry.
+     * @return The current JSON object, for chaining purposes.
      * @throws IllegalArgumentException If the key is null.
      */
-    public void put(String key, Object entry)
+    public JSON put(String key, Object entry)
             throws IllegalArgumentException {
         if(key == null) {
             throw new IllegalArgumentException("Provided key is null");
         }
         rawContent.put(key, util.getFinalValue(entry));
+        return this;
+    }
+
+    /**
+     * Removes an entry from the JSON object.
+     * @param key The key.
+     * @return The current JSON object, for chaining purposes.
+     * @throws IllegalArgumentException If the key is null.
+     */
+    public JSON remove(String key)
+            throws IllegalArgumentException {
+        if(key == null) {
+            throw new IllegalArgumentException("Provided key is null");
+        }
+        rawContent.remove(key);
+        return this;
     }
 
     /**
@@ -276,7 +293,6 @@ public class JSON {
         return formatter.result();
     }
 
-
     /**
      * Marshals (maps) the JSON object to the specified object.
      * An instance of this object will be created.
@@ -286,15 +302,17 @@ public class JSON {
      * If the field is annotated with {@link de.arraying.kotys.JSONField}, then the field will receive the value of the JSON key specified in the annotation.
      * In the case that the JSON object does not contain the key specified in the annotation, the field will be initialized as null instead.
      * When using arrays, then the array in T MUST be non primitive.
-     * The data type of the array depends on the class of the first element in the JSON array.
+     * The data type of an array is always the type the field uses.
      * If elements in the JSON array are not the same type as the array, then null will be used.
      * If a field is not a JSON datatype, then a JSON sub object will be fetched from the current JSON object, and this object will be marshaled recursively.
+     * Multidimensional arrays are not supported, i.e. a JSONArray in a JSONArray is not permitted.
      * @param clazz The class of T to use when marshalling.
      * @param ignoredKeys A vararg of ignored JSON keys. These will not be marshaled, regardless of annotation.
      * @param <T> The type (object) to marshal to.
      * @return A marshaled object.
-     * @throws IllegalArgumentException If the class is null or has no empty constructor.
+     * @throws IllegalArgumentException If the class is null, has no empty constructor or arrays are not primitive.
      * @throws IllegalStateException If the class could not be instantiated.
+     * @throws UnsupportedOperationException If a field is a multidimensional array.
      */
     public final <T> T marshal(Class<T> clazz, String... ignoredKeys)
             throws IllegalArgumentException {

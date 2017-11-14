@@ -20,7 +20,7 @@ import java.util.Arrays;
 final class JSONParser {
 
     /**
-     * A dual return consisting of the actual return object as well as the index to continute at.
+     * A dual return consisting of the actual return object as well as the index to continue at.
      * @param <T> The return type.
      */
     private class BiReturn<T> {

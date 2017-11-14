@@ -90,6 +90,15 @@ public class JSONArray {
     }
 
     /**
+     * Deletes the element at the specified index.
+     * @param index The index.
+     * @return The object that was removed from the Array.
+     */
+    public Object delete(int index) {
+        return rawContent.remove(index);
+    }
+
+    /**
      * Gets the Object at the specified index.
      * @param index The index, 0 based indexing.
      * @return The entry as an Object, or null if the specified index is out of range or the value is null.
