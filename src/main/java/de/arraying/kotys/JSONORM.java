@@ -173,9 +173,11 @@ final class JSONORM<T> {
      */
     private List<FieldContainer> getAllFields() {
         boolean classBasedAnnotation = container.getClass().isAnnotationPresent(JSONContainer.class);
+        boolean fakeClassBasedAnnotation = JSONStorage.getInstance().has(container.getClass());
         List<FieldContainer> fieldContainers = new ArrayList<>();
         for(Field classField : container.getClass().getDeclaredFields()) {
-            if(classBasedAnnotation) {
+            if(classBasedAnnotation
+                    || fakeClassBasedAnnotation) {
                 fieldContainers.add(new FieldContainer(classField, classField.getName()));
                 continue;
             }
