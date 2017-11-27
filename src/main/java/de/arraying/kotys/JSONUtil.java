@@ -26,18 +26,7 @@ final class JSONUtil {
      * @return A string version of the object.
      */
     String toString(Object object) {
-        String string = object == null ? "null" : object.toString();
-        if(object instanceof String) {
-            string = string.replace("\t", "\\t")
-                    .replace("\b", "\\b")
-                    .replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\f", "\\f")
-                    .replace("\'", "\\'")
-                    .replace("\"", "\\\"");
-            return "\"" + string + "\"";
-        }
-        return string;
+        return object == null ? "null" : object.toString();
     }
 
     /**
