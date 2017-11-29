@@ -82,7 +82,9 @@ final class JSONFormatter {
      * @return The formatter for chaining purposes.
      */
     JSONFormatter objectKey(String key) {
-        builder.append(util.toString(key))
+        builder.append("\"")
+                .append(key)
+                .append("\"")
                 .append(":");
         return this;
     }
@@ -93,7 +95,13 @@ final class JSONFormatter {
      * @return The formatter for chaining purposes.
      */
     JSONFormatter objectValue(Object value) {
-        builder.append(value);
+        if(value instanceof String) {
+            builder.append("\"")
+                    .append(value)
+                    .append("\"");
+        } else {
+            builder.append(value);
+        }
         return this;
     }
 

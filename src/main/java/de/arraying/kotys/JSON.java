@@ -282,7 +282,7 @@ public class JSON {
             } else if(valueRaw instanceof JSONArray) {
                 value = ((JSONArray) valueRaw).marshal();
             } else {
-                value = util.toString(valueRaw);
+                value = valueRaw;
             }
             formatter.objectValue(value);
             if(iterator.hasNext()) {
