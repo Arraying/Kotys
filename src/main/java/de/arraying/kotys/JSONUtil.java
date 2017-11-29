@@ -21,15 +21,6 @@ import java.util.List;
 final class JSONUtil {
 
     /**
-     * Gets the object as a JSON string.
-     * @param object The object.
-     * @return A string version of the object.
-     */
-    String toString(Object object) {
-        return object == null ? "null" : object.toString();
-    }
-
-    /**
      * Gets the final value from an object.
      * @param value The raw object.
      * @param ignoredFields All ignored fields.

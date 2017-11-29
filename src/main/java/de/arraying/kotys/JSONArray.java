@@ -238,7 +238,7 @@ public class JSONArray {
                 } else if(valueRaw instanceof JSONArray) {
                     value = ((JSONArray) valueRaw).marshal();
                 } else {
-                    value = util.toString(valueRaw);
+                    value = valueRaw;
                 }
                 formatter.array(value);
             if(i + 1 < length()) {
