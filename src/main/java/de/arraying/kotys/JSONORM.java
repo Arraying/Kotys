@@ -172,18 +172,13 @@ final class JSONORM<T> {
      * @return An immutable list of field containers.
      */
     private List<FieldContainer> getAllFields() {
-        boolean classBasedAnnotation = container.getClass().isAnnotationPresent(JSONContainer.class);
-        boolean fakeClassBasedAnnotation = JSONStorage.getInstance().has(container.getClass());
         List<FieldContainer> fieldContainers = new ArrayList<>();
         for(Field classField : container.getClass().getDeclaredFields()) {
-            if(classBasedAnnotation
-                    || fakeClassBasedAnnotation) {
-                fieldContainers.add(new FieldContainer(classField, classField.getName()));
-                continue;
-            }
             if(classField.isAnnotationPresent(JSONField.class)) {
                 String key = classField.getAnnotation(JSONField.class).key();
                 fieldContainers.add(new FieldContainer(classField, key));
+            } else {
+                fieldContainers.add(new FieldContainer(classField, classField.getName()));
             }
         }
         return Collections.unmodifiableList(fieldContainers);

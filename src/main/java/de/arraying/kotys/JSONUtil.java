@@ -43,7 +43,6 @@ final class JSONUtil {
         }
     }
 
-
     /**
      * Checks if the specified object is a valid JSON data type.
      * This presumes that all arrays have already been parsed.

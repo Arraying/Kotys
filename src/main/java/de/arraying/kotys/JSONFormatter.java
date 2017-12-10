@@ -19,7 +19,6 @@ package de.arraying.kotys;
 final class JSONFormatter {
 
     private final StringBuilder builder = new StringBuilder();
-    private final JSONUtil util = new JSONUtil();
 
     /**
      * Starts a new JSON object.
@@ -67,12 +66,22 @@ final class JSONFormatter {
     }
 
     /**
-     * Appends an array entry.
-     * @param value The value.
+     * Appends an object.
+     * @param object The object.
      * @return The formatter for chaining purposes.
      */
-    JSONFormatter array(Object value) {
-        builder.append(value);
+    JSONFormatter object(String object) {
+        builder.append(object);
+        return this;
+    }
+
+    /**
+     * Appends an array.
+     * @param array The array.
+     * @return The formatter for chaining purposes.
+     */
+    JSONFormatter array(String array) {
+        builder.append(array);
         return this;
     }
 
@@ -90,11 +99,11 @@ final class JSONFormatter {
     }
 
     /**
-     * Appends the object value.
+     * Appends the value.
      * @param value The value of the object.
      * @return The formatter for chaining purposes.
      */
-    JSONFormatter objectValue(Object value) {
+    JSONFormatter value(Object value) {
         if(value instanceof String) {
             builder.append("\"")
                     .append(value)

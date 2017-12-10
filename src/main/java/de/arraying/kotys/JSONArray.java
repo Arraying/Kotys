@@ -232,15 +232,13 @@ public class JSONArray {
                 .startArray();
         for(int i = 0; i < length(); i++) {
                 Object valueRaw = rawContent.get(i);
-                Object value;
                 if(valueRaw instanceof JSON) {
-                    value = ((JSON) valueRaw).marshal();
+                    formatter.object(((JSON) valueRaw).marshal());
                 } else if(valueRaw instanceof JSONArray) {
-                    value = ((JSONArray) valueRaw).marshal();
+                    formatter.array(((JSONArray) valueRaw).marshal());
                 } else {
-                    value = valueRaw;
+                    formatter.value(valueRaw);
                 }
-                formatter.array(value);
             if(i + 1 < length()) {
                 formatter.comma();
             }

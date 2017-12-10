@@ -86,7 +86,7 @@ public class JSON {
 
     /**
      * Creates a new JSON object from a container.
-     * This container object MUST be annotated with {@link de.arraying.kotys.JSONContainer} OR every wanted field MUST be annotated with {@link de.arraying.kotys.JSONField}.
+     * The JSON key will correspond to the field name, unless the field is annotated with {@link de.arraying.kotys.JSONField}.
      * All selected fields will then be attempted to be converted into JSON.
      * If a field is not a valid JSON datatype the object will then be taken, and this method will be called recursively.
      * @param container A container.
@@ -276,15 +276,13 @@ public class JSON {
             Map.Entry<String, Object> entry = iterator.next();
             formatter.objectKey(entry.getKey());
             Object valueRaw = entry.getValue();
-            Object value;
             if(valueRaw instanceof JSON) {
-                value = ((JSON) valueRaw).marshal();
+                formatter.object(((JSON) valueRaw).marshal());
             } else if(valueRaw instanceof JSONArray) {
-                value = ((JSONArray) valueRaw).marshal();
+                formatter.array(((JSONArray) valueRaw).marshal());
             } else {
-                value = valueRaw;
+                formatter.value(valueRaw);
             }
-            formatter.objectValue(value);
             if(iterator.hasNext()) {
                 formatter.comma();
             }
@@ -296,9 +294,7 @@ public class JSON {
     /**
      * Marshals (maps) the JSON object to the specified object.
      * An instance of this object will be created.
-     * This object object MUST be annotated with {@link de.arraying.kotys.JSONContainer} OR every wanted field MUST be annotated with {@link de.arraying.kotys.JSONField}.
-     * If the object is annotated with {@link de.arraying.kotys.JSONContainer} then all JSON keys will be mapped to fields with the name of the key.
-     * Fields who's names are not in the JSON object will not get set.
+     * The JSON entry will be mapped to a field with the same name as the key, unless the field is anntoated with {@link de.arraying.kotys.JSONField}.
      * If the field is annotated with {@link de.arraying.kotys.JSONField}, then the field will receive the value of the JSON key specified in the annotation.
      * In the case that the JSON object does not contain the key specified in the annotation, the field will be initialized as null instead.
      * When using arrays, then the array in T MUST be non primitive.
