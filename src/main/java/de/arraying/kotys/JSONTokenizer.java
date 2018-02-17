@@ -201,7 +201,8 @@ final class JSONTokenizer {
                 readString();
                 break;
             default:
-                if(Character.isDigit(character)) {
+                if(Character.isDigit(character)
+                        || character == '-') {
                     readNumber();
                 } else if(Character.isLetter(character)) {
                     readLiteral();
@@ -284,6 +285,11 @@ final class JSONTokenizer {
             }
         }
         String number = builder.toString();
+        if(number.endsWith(".")) {
+            throw new IllegalStateException("Numbers cannot end with a decimal point");
+        } else if(number.endsWith("-")) {
+            throw new IllegalStateException("Numbers need a value after negative sign");
+        }
         Object value;
         if(decimal) {
             value = Double.valueOf(number);
