@@ -1,9 +1,9 @@
 package de.arraying.kotys;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.StringReader;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Copyright 2017 Arraying
@@ -20,10 +20,10 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
-public class JSONArray {
+@SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
+public class JSONArray implements Iterator<Object> {
 
-    private final List<Object> rawContent = new LinkedList<>();
+    private final List<Object> rawContent = new ArrayList<>();
     private final JSONUtil util = new JSONUtil();
 
     /**
@@ -45,7 +45,7 @@ public class JSONArray {
         if(rawJSONArray.isEmpty()) {
             throw new IllegalArgumentException("Provided string is empty");
         }
-        JSONTokenizer.Token[] tokens = new JSONTokenizer(rawJSONArray).getTokens();
+        JSONTokenizer.Token[] tokens = new JSONTokenizer(new StringReader(rawJSONArray)).getTokens();
         if(tokens.length < 2) {
             throw new IllegalStateException("Too little tokens");
         }
@@ -81,12 +81,14 @@ public class JSONArray {
      * This entry can either be a raw JSON data type, or a custom object.
      * For more information on how custom object parsing works, see {@link de.arraying.kotys.JSON(Object)}
      * @param values The values to append.
+     * @return The current JSONArray, for chaining purposes.
      */
-    public void append(Object... values)
+    public JSONArray append(Object... values)
             throws IllegalArgumentException {
         for(Object object : values) {
             rawContent.add(util.getFinalValue(object));
         }
+        return this;
     }
 
     /**
@@ -248,6 +250,26 @@ public class JSONArray {
     }
 
     /**
+     * Marshals the JSON array to a JVM array.
+     * If an element is not of type T, then it will be skipped.
+     * @param clazz The class of T to use when marshaling.
+     * @param <T> The type (object) to marshal to.
+     * @return A marshaled array.
+     */
+    @SuppressWarnings("unchecked")
+    public final <T> T[] marshal(Class<T> clazz) {
+        List<Object> objects = rawContent
+                .stream()
+                .filter(entry -> entry.getClass().equals(clazz))
+                .collect(Collectors.toList());
+        Object[] array = (Object[]) Array.newInstance(clazz, objects.size());
+        for(int i = 0; i < array.length; i++) {
+            array[i] = objects.get(i);
+        }
+        return (T[]) array;
+    }
+
+    /**
      * Converts the JSON array to a string.
      * This method invokes the {@link #marshal()} method.
      * @return A string representation of the JSON array.
@@ -255,6 +277,32 @@ public class JSONArray {
     @Override
     public final String toString() {
         return marshal();
+    }
+
+    /**
+     * Whether or not the array has a next entry.
+     * @return True if it does, false otherwise.
+     */
+    @Override
+    public boolean hasNext() {
+        return rawContent.iterator().hasNext();
+    }
+
+    /**
+     * Gets the next value.
+     * @return The next value.
+     */
+    @Override
+    public Object next() {
+        return rawContent.iterator().next();
+    }
+
+    /**
+     * Removes the value.
+     */
+    @Override
+    public void remove() {
+        rawContent.iterator().remove();
     }
 
 }

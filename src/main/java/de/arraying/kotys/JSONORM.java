@@ -1,6 +1,5 @@
 package de.arraying.kotys;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -115,7 +114,8 @@ final class JSONORM<T> {
      * @return A mapped object.
      * @throws UnsupportedOperationException If a field is a multidimensional array.
      */
-    T mapTo(JSON json, String... ignoredJSONKeys) {
+    T mapTo(JSON json, String... ignoredJSONKeys)
+            throws UnsupportedOperationException {
         containerLoop:
         for(FieldContainer container : getAllFields()) {
             String key = container.jsonKey;
@@ -143,20 +143,7 @@ final class JSONORM<T> {
                 if(fieldType.isPrimitive()) {
                     throw new IllegalArgumentException("Array type " + fieldType + " is primitive");
                 }
-                Object[] array = (Object[]) Array.newInstance(fieldType, jsonArray.length());
-                for(int i = 0; i < array.length; i++) {
-                    Object object = jsonArray.object(i);
-                    if(object instanceof JSON) {
-                        object = ((JSON) object).marshal(fieldType, ignoredJSONKeys);
-                    } else if (object instanceof JSONArray) {
-                        throw new UnsupportedOperationException("Cannot map to a multidimensional array for field " + field.getName());
-                    }
-                    if(!object.getClass().equals(fieldType)) {
-                        continue;
-                    }
-                    array[i] = object;
-                }
-                value = array;
+                value = ((JSONArray) rawValue).marshal(fieldType);
             } else {
                 value = rawValue;
             }

@@ -1,5 +1,6 @@
 package de.arraying.kotys;
 
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -44,7 +45,7 @@ public class JSON {
         if(rawJSON.isEmpty()) {
             throw new IllegalArgumentException("Provided string is empty");
         }
-        JSONTokenizer.Token[] tokens = new JSONTokenizer(rawJSON).getTokens();
+        JSONTokenizer.Token[] tokens = new JSONTokenizer(new StringReader(rawJSON)).getTokens();
         if(tokens.length < 2) {
             throw new IllegalStateException("Too little tokens");
         }

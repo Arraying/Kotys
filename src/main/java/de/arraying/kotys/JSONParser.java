@@ -25,8 +25,8 @@ final class JSONParser {
      */
     private class BiReturn<T> {
 
-        private T returned;
-        private int index;
+        private final T returned;
+        private final int index;
 
         private BiReturn(T returned, int index) {
             this.returned = returned;
@@ -40,8 +40,10 @@ final class JSONParser {
      * When first invoking this function (not recursively) the beginning { or [ and trailing ] or } should be omitted.
      * @param destination The destination where the parsed code goes.
      * @param tokens An array of tokens.
+     * @throws IllegalStateException If the JSON is invalid.
      */
-    void parse(Object destination, JSONTokenizer.Token[] tokens) {
+    void parse(Object destination, JSONTokenizer.Token[] tokens)
+            throws IllegalStateException {
         boolean expectingComma = false;
         for(int i = 0; i < tokens.length; i++) {
             JSONTokenizer.Token token = tokens[i];
@@ -82,16 +84,17 @@ final class JSONParser {
                 if(i + 2 >= tokens.length) {
                     throw new IllegalStateException("Malformed JSON. Expected value, but found end of object");
                 }
-                JSONTokenizer.Token valueToken = tokens[i + 2];
+                int valueIndex = i + 2;
+                JSONTokenizer.Token valueToken = tokens[valueIndex];
                 if(isDataType(valueToken)) {
                     json.put(key, asDataType(valueToken));
                     i += 2;
                 } else if(valueToken.getType() == JSONTokenizer.Type.ARRAY_OPEN) {
-                    BiReturn<JSONArray> result = parseArray(tokens, i + 2);
+                    BiReturn<JSONArray> result = parseArray(tokens, valueIndex);
                     json.put(key, result.returned);
                     i = result.index;
                 } else if(valueToken.getType() == JSONTokenizer.Type.OBJECT_OPEN) {
-                    BiReturn<JSON> result = parseObject(tokens, i + 2);
+                    BiReturn<JSON> result = parseObject(tokens, valueIndex);
                     json.put(key, result.returned);
                     i = result.index;
                 } else {
@@ -99,7 +102,7 @@ final class JSONParser {
                 }
                 expectingComma = true;
             } else {
-                throw new IllegalStateException("Internal error. Found a non object and array entity to parse. If you see this please report it to the developer");
+                throw new IllegalStateException("Internal error. Found a non object and array entity to parse. If you see this please report it to the developer.");
             }
         }
     }
@@ -163,18 +166,18 @@ final class JSONParser {
         if(!type.name().startsWith("TYPE")) {
             return null;
         }
-        String value = token.getToken();
+        Object value = token.getToken();
         switch(type) {
             case TYPE_NULL:
                 return null;
             case TYPE_BOOL:
-                return Boolean.valueOf(value);
+                return Boolean.valueOf(value.toString());
             case TYPE_DOUBLE:
-                return asDouble(value);
+                return asDouble(value.toString());
             case TYPE_INTEGER:
-                return asNonDecimal(value);
+                return asNonDecimal(value.toString());
             case TYPE_STRING:
-                return value.substring(1, value.length()-1);
+                return value;
         }
         return null;
     }
