@@ -294,7 +294,7 @@ final class JSONTokenizer {
         if(decimal) {
             value = Double.valueOf(number);
         } else {
-            value = Integer.valueOf(number);
+            value = Long.valueOf(number);
         }
         push(value, decimal ? Type.TYPE_DOUBLE : Type.TYPE_INTEGER);
     }
