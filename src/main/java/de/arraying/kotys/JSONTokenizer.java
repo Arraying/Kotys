@@ -371,6 +371,18 @@ final class JSONTokenizer {
                         case 'r':
                             builder.append('\r');
                             break;
+                        case 'u':
+                            StringBuilder unicodeBuilder = new StringBuilder();
+                            for(int i = 0; i < 4; i++) {
+                                next();
+                                if(eos) {
+                                    break loop;
+                                }
+                                unicodeBuilder.append(character);
+                            }
+                            char value = (char) Integer.parseInt(unicodeBuilder.toString(), 16);
+                            builder.append(value);
+                            break;
                         case '"':
                         case '\'':
                         case '\\':
