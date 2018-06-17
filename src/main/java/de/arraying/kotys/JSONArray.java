@@ -3,7 +3,6 @@ package de.arraying.kotys;
 import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Copyright 2017 Arraying
@@ -258,10 +257,18 @@ public class JSONArray implements Iterator<Object> {
      */
     @SuppressWarnings("unchecked")
     public final <T> T[] marshal(Class<T> clazz) {
-        List<Object> objects = rawContent
-                .stream()
-                .filter(entry -> entry.getClass().equals(clazz))
-                .collect(Collectors.toList());
+        List<Object> objects = new ArrayList<>();
+        for(Object raw : rawContent) {
+            if(raw instanceof JSON) {
+                try {
+                    objects.add(((JSON) raw).marshal(clazz));
+                } catch(Exception ignored) {}
+            } else {
+                if(raw.getClass().equals(clazz)) {
+                    objects.add(raw);
+                }
+            }
+        }
         Object[] array = (Object[]) Array.newInstance(clazz, objects.size());
         for(int i = 0; i < array.length; i++) {
             array[i] = objects.get(i);

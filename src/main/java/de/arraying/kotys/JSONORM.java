@@ -135,10 +135,6 @@ final class JSONORM<T> {
             if(rawValue instanceof JSON) {
                 value = ((JSON) rawValue).marshal(field.getType());
             } else if(rawValue instanceof JSONArray) {
-                JSONArray jsonArray = (JSONArray) rawValue;
-                if(jsonArray.length() == 0) {
-                    continue;
-                }
                 Class<?> fieldType = field.getType().getComponentType();
                 if(fieldType.isPrimitive()) {
                     throw new IllegalArgumentException("Array type " + fieldType + " is primitive");
