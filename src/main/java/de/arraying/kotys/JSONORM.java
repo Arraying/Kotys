@@ -130,16 +130,25 @@ final class JSONORM<T> {
             if(!json.has(key)) {
                 continue;
             }
+            Class<?> type = field.getType();
             Object rawValue = json.object(key);
             Object value;
             if(rawValue instanceof JSON) {
-                value = ((JSON) rawValue).marshal(field.getType());
-            } else if(rawValue instanceof JSONArray) {
-                Class<?> fieldType = field.getType().getComponentType();
-                if(fieldType.isPrimitive()) {
-                    throw new IllegalArgumentException("Array type " + fieldType + " is primitive");
+                if(type.equals(JSON.class)) {
+                    value = rawValue;
+                } else {
+                    value = ((JSON) rawValue).marshal(type);
                 }
-                value = ((JSONArray) rawValue).marshal(fieldType);
+            } else if(rawValue instanceof JSONArray) {
+                if(type.equals(JSONArray.class)) {
+                    value = rawValue;
+                } else {
+                    Class<?> fieldType = type.getComponentType();
+                    if(fieldType.isPrimitive()) {
+                        throw new IllegalArgumentException("Array type " + fieldType + " is primitive");
+                    }
+                    value = ((JSONArray) rawValue).marshal(fieldType);
+                }
             } else {
                 value = rawValue;
             }
