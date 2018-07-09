@@ -1,5 +1,7 @@
 package de.arraying.kotys;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -23,7 +25,7 @@ import java.util.*;
 public class JSONArray implements Iterator<Object> {
 
     private final List<Object> rawContent = new ArrayList<>();
-    private final JSONUtil util = new JSONUtil();
+    private static final JSONUtil util = new JSONUtil();
 
     /**
      * Creates an empty JSON array.
@@ -73,6 +75,18 @@ public class JSONArray implements Iterator<Object> {
         for(Object object : objects) {
             rawContent.add(util.getFinalValue(object));
         }
+    }
+
+    /**
+     * Parses the contents of the specified file, and then calls {@link #JSONArray(String)} with it.
+     * If the file is null or does not exist, an empty object will be created.
+     * @param file The file.
+     * @throws IOException If there was an error reading the file.
+     * @throws IllegalStateException If the provided JSON string is invalid.
+     */
+    public JSONArray(File file)
+            throws IOException, IllegalStateException {
+        this(util.getFileContent(file, false));
     }
 
     /**

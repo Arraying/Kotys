@@ -1,5 +1,8 @@
 package de.arraying.kotys;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +44,22 @@ final class JSONUtil {
         } else {
             return value;
         }
+    }
+
+    /**
+     * Gets the content of a file as a string.
+     * @param file The file.
+     * @param object True if the content is for an object, false for an array.
+     * @return The content.
+     * @throws IOException If an error occurs while reading.
+     */
+    String getFileContent(File file, boolean object)
+        throws IOException {
+        if(file == null
+                || !file.exists()) {
+            return object ? new JSON().toString() : new JSONArray().toString();
+        }
+        return new String(Files.readAllBytes(file.toPath()));
     }
 
     /**
