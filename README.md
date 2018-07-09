@@ -45,24 +45,24 @@ System.out.println(person.json("address").string("city")); // prints "Townington
 If you have the following classes, you are able to map the JSON object to a Person object. Notice the annotations, these will be elaborated upon later.
 
 ```java
-public @JSONContainer class Person {
-    private String name;
-    private int age;
-    private String[] siblings;
-    private Address address;
+public class Person {
+    @JSONField(key="name") private String name;
+    @JSONField(key="age") private Integer age;
+    @JSONField(key="siblings") private String[] siblings;
+    @JSONField(key="address") private Address address;
 
     public String getName() { return name; }
-    public int getAge() { return age; }
+    public Integer getAge() { return age; }
     public String[] getSiblings() { return siblings; }
     public Address getAddress() { return address; }
 }
 ```
 ```java
 public class Address {
-    @JSONField(jsonKey = "road") private String road;
-    @JSONField(jsonKey =  "house") private int house;
-    @JSONField(jsonKey = "city") private String city;
-    @JSONField(jsonKey = "country") private String country;
+    @JSONField(key = "road") private String road;
+    @JSONField(key =  "house") private int house;
+    @JSONField(key = "city") private String city;
+    @JSONField(key = "country") private String country;
     private String something;
 
     public String getRoad() { return road; }
@@ -80,8 +80,7 @@ Person personObject = person.marshal(Person.class);
 System.out.println(personObject.getAge()); // prints "25"
 ```
 
-The annotation `@JSONContainer` specifies that all JSON keys (unless specifically ignored) will be mapped to a field with the same name. 
-`@JSONField` specifies that only the provided field is mapped to the key specified in the annotation.
+The annotation `@JSONField` specifies that the field should be set to the value of the key specified in the annotation. The keys specified in the variadic arguments will be ignored, regardless of annotation. This goes both ways, and is used when creating a JSON object from a Java object, only then the variadic arguments represent the ignored fields, rather than keys.
 
 # Usage
 
