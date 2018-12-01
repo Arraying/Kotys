@@ -226,6 +226,9 @@ final class JSONParser {
         int closed = 0;
         for(int i = current; i < tokens.length; i++) {
             JSONTokenizer.Token token = tokens[i];
+            if(token.getToken() == null) {
+                continue;
+            }
             if(token.getToken().equals(array ? "[" : "{")) {
                 open++;
             }
