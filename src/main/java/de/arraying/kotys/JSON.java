@@ -341,8 +341,9 @@ public class JSON {
      * @param format - Format to be applied to String marshal()
      */
 
-    public void setFormat(JSONMarshalFormat format) {
+    public JSON setFormat(JSONMarshalFormat format) {
         this.format = format;
+        return this;
     }
 
     /**
