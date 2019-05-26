@@ -23,8 +23,10 @@ import java.util.*;
 @SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class JSON {
 
-    private final Map<String, Object> rawContent = new TreeMap<>();
+    private final Map<String, Object> rawContent = new LinkedHashMap<>();
     private static final JSONUtil util = new JSONUtil();
+
+    private JSONMarshalFormat format = null;
 
     /**
      * Creates an empty JSON object.
@@ -82,7 +84,7 @@ public class JSON {
             if(!(entry.getKey() instanceof String)) {
                 throw new IllegalArgumentException("One of the map entry keys is not a string");
             }
-            String key = (String) entry.getKey();
+            final String key = (String) entry.getKey();
             rawContent.put(key, util.getFinalValue(entry.getValue()));
         }
     }
@@ -303,7 +305,8 @@ public class JSON {
             }
         }
         formatter.endObject();
-        return formatter.result();
+
+        return format != null ? format.format(formatter.result()) : formatter.result();
     }
 
     /**
@@ -331,6 +334,15 @@ public class JSON {
             throw new IllegalArgumentException("Provided class is null");
         }
         return new JSONORM<>(clazz).mapTo(this, ignoredKeys);
+    }
+
+    /**
+     * Set formatting to be applied for String marshal()
+     * @param format - Format to be applied to String marshal()
+     */
+
+    public void setFormat(JSONMarshalFormat format) {
+        this.format = format;
     }
 
     /**
