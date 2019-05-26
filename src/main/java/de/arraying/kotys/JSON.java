@@ -23,7 +23,7 @@ import java.util.*;
 @SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class JSON {
 
-    private final Map<String, Object> rawContent = new TreeMap<>();
+    private final Map<String, Object> rawContent = new LinkedHashMap<>();
     private static final JSONUtil util = new JSONUtil();
 
     /**
