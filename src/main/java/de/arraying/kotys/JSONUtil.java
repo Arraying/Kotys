@@ -59,8 +59,7 @@ final class JSONUtil {
                 || !file.exists()) {
             return object ? new JSON().toString() : new JSONArray().toString();
         }
-        final String rtn = new String(Files.readAllBytes(file.toPath()));
-        return rtn;
+        return new String(Files.readAllBytes(file.toPath()));
     }
 
     /**
