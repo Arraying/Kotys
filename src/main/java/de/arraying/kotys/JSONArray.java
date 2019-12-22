@@ -24,8 +24,10 @@ import java.util.*;
 @SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class JSONArray implements Iterator<Object> {
 
-    private final List<Object> rawContent = new ArrayList<>();
     private static final JSONUtil util = new JSONUtil();
+    private final Object writeLock = new Object();
+    private final List<Object> rawContent = new ArrayList<>();
+    private JSONFormatter formatter = new JSONFormatter.DefaultImplementation();
 
     /**
      * Creates an empty JSON array.
@@ -88,6 +90,16 @@ public class JSONArray implements Iterator<Object> {
             throws IOException, IllegalStateException {
         this(util.getFileContent(file, false));
     }
+    /**
+     * Specifies the formatter to use when marshalling to a string.
+     * @param formatter A formatter instance.
+     */
+    public void use(JSONFormatter formatter) {
+        if(formatter == null) {
+            throw new IllegalArgumentException("Formatter is null");
+        }
+        this.formatter = formatter;
+    }
 
     /**
      * Appends a value to the array.
@@ -98,8 +110,10 @@ public class JSONArray implements Iterator<Object> {
      */
     public JSONArray append(Object... values)
             throws IllegalArgumentException {
-        for(Object object : values) {
-            rawContent.add(util.getFinalValue(object));
+        synchronized(writeLock) {
+            for(Object object : values) {
+                rawContent.add(util.getFinalValue(object));
+            }
         }
         return this;
     }
@@ -110,7 +124,9 @@ public class JSONArray implements Iterator<Object> {
      * @return The object that was removed from the Array.
      */
     public Object delete(int index) {
-        return rawContent.remove(index);
+        synchronized(writeLock) {
+            return rawContent.remove(index);
+        }
     }
 
     /**
@@ -243,17 +259,10 @@ public class JSONArray implements Iterator<Object> {
      * @return A string representation of the JSON array.
      */
     public final String marshal() {
-        JSONFormatter formatter = new JSONFormatter()
-                .startArray();
+        formatter.startArray();
         for(int i = 0; i < length(); i++) {
                 Object valueRaw = rawContent.get(i);
-                if(valueRaw instanceof JSON) {
-                    formatter.object(((JSON) valueRaw).marshal());
-                } else if(valueRaw instanceof JSONArray) {
-                    formatter.array(((JSONArray) valueRaw).marshal());
-                } else {
-                    formatter.value(valueRaw);
-                }
+                util.format(formatter, valueRaw);
             if(i + 1 < length()) {
                 formatter.comma();
             }

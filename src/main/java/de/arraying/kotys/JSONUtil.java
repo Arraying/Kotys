@@ -63,6 +63,22 @@ final class JSONUtil {
     }
 
     /**
+     * Applies a raw JSON object to the formatter.
+     * This method exists such that there's no duplicate method.
+     * @param formatter The formatter instance.
+     * @param valueRaw The raw value.
+     */
+    void format(JSONFormatter formatter, Object valueRaw) {
+        if(valueRaw instanceof JSON) {
+            formatter.object(((JSON) valueRaw).marshal());
+        } else if(valueRaw instanceof JSONArray) {
+            formatter.array(((JSONArray) valueRaw).marshal());
+        } else {
+            formatter.value(valueRaw);
+        }
+    }
+
+    /**
      * Checks if the specified object is a valid JSON data type.
      * This presumes that all arrays have already been parsed.
      * @param object The object.

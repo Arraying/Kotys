@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Copyright 2017 Arraying
@@ -23,10 +24,10 @@ import java.util.*;
 @SuppressWarnings({"WeakerAccess", "unused", "UnusedReturnValue"})
 public class JSON {
 
-    private final Map<String, Object> rawContent = new LinkedHashMap<>();
     private static final JSONUtil util = new JSONUtil();
-
-    private JSONMarshalFormat format = null;
+    private final Object writeLock = new Object();
+    private Map<String, Object> rawContent = new HashMap<>();
+    private JSONFormatter formatter = new JSONFormatter.DefaultImplementation();
 
     /**
      * Creates an empty JSON object.
@@ -119,6 +120,39 @@ public class JSON {
     }
 
     /**
+     * Specifies the map type to use for internal storage.
+     * This is so that when marshalling some specific ordering is retained.
+     * This map will get cleared.
+     * Note that a {@link java.util.concurrent.ConcurrentHashMap} is not allowed.
+     * @param map The map.
+     */
+    public void use(Map<String, Object> map) {
+        if(map == null) {
+            throw new IllegalArgumentException("Provided map is null");
+        }
+        if(map instanceof ConcurrentHashMap) {
+            throw new IllegalArgumentException("ConcurrentHashMap not allowed");
+        }
+        Map<String, Object> cache = new HashMap<>(rawContent);
+        map.clear();
+        synchronized(writeLock) {
+            rawContent = map;
+            rawContent.putAll(cache);
+        }
+    }
+
+    /**
+     * Specifies the formatter to use when marshalling to a string.
+     * @param formatter A formatter instance.
+     */
+    public void use(JSONFormatter formatter) {
+        if(formatter == null) {
+            throw new IllegalArgumentException("Formatter is null");
+        }
+        this.formatter = formatter;
+    }
+
+    /**
      * Adds an entry to the current JSON object.
      * This entry can either be a raw JSON data type, or a custom object.
      * For more information on how custom object parsing works, see {@link #JSON(Object, String...)} )}
@@ -132,7 +166,9 @@ public class JSON {
         if(key == null) {
             throw new IllegalArgumentException("Provided key is null");
         }
-        rawContent.put(key, util.getFinalValue(entry));
+        synchronized(writeLock) {
+            rawContent.put(key, util.getFinalValue(entry));
+        }
         return this;
     }
 
@@ -147,7 +183,9 @@ public class JSON {
         if(key == null) {
             throw new IllegalArgumentException("Provided key is null");
         }
-        rawContent.remove(key);
+        synchronized(writeLock) {
+            rawContent.remove(key);
+        }
         return this;
     }
 
@@ -286,27 +324,19 @@ public class JSON {
      * @return A string representation of the JSON object.
      */
     public final String marshal() {
-        JSONFormatter formatter = new JSONFormatter()
-                .startObject();
+        formatter.startObject();
         Iterator<Map.Entry<String, Object>> iterator = rawContent.entrySet().iterator();
         while(iterator.hasNext()) {
             Map.Entry<String, Object> entry = iterator.next();
             formatter.objectKey(entry.getKey());
             Object valueRaw = entry.getValue();
-            if(valueRaw instanceof JSON) {
-                formatter.object(((JSON) valueRaw).marshal());
-            } else if(valueRaw instanceof JSONArray) {
-                formatter.array(((JSONArray) valueRaw).marshal());
-            } else {
-                formatter.value(valueRaw);
-            }
+            util.format(formatter, valueRaw);
             if(iterator.hasNext()) {
                 formatter.comma();
             }
         }
         formatter.endObject();
-
-        return format != null ? format.format(formatter.result()) : formatter.result();
+        return formatter.result();
     }
 
     /**
@@ -334,16 +364,6 @@ public class JSON {
             throw new IllegalArgumentException("Provided class is null");
         }
         return new JSONORM<>(clazz).mapTo(this, ignoredKeys);
-    }
-
-    /**
-     * Set formatting to be applied for String marshal()
-     * @param format - Format to be applied to String marshal()
-     */
-
-    public JSON setFormat(JSONMarshalFormat format) {
-        this.format = format;
-        return this;
     }
 
     /**
